@@ -61,15 +61,29 @@ function takeSlot(now) {
   return 0
 }
 
-async function fetchReceipt(id) {
+async function fetchReceipt(id, timeoutMs) {
   const res = await fetch(RECEIPT_URL + encodeURIComponent(id), {
     headers: { "user-agent": "Mozilla/5.0 (compatible; ChewataReceiptCheck/1.0)", accept: "text/html" },
-    signal: AbortSignal.timeout(15_000),
+    signal: AbortSignal.timeout(timeoutMs),
   })
   if (!res.ok) throw new Error(`Ethio Telecom answered ${res.status}`)
   const html = await res.text()
   if (html.length < 2000 && html.includes(NOT_FOUND_TEXT)) return { found: false }
   return { found: true, html }
+}
+
+/**
+ * Ethio Telecom answers most lookups in 1–2 s but stalls on about one in
+ * four. A stalled lookup is abandoned after 8 s and tried once more, if the
+ * per-minute allowance has room.
+ */
+async function lookup(id) {
+  try {
+    return await fetchReceipt(id, 8_000)
+  } catch (err) {
+    if (err.name !== "TimeoutError" || takeSlot(Date.now())) throw err
+    return fetchReceipt(id, 10_000)
+  }
 }
 
 const server = createServer(async (req, res) => {
@@ -85,7 +99,7 @@ const server = createServer(async (req, res) => {
     if (wait) return send(res, 429, { retryAfter: wait }, { "retry-after": String(wait) })
 
     const started = Date.now()
-    const result = await fetchReceipt(id)
+    const result = await lookup(id)
     console.log(`${new Date().toISOString()} ${id} ${result.found ? "found" : "not found"} ${Date.now() - started}ms`)
     return send(res, 200, result)
   } catch (err) {
