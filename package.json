@@ -1,0 +1,10 @@
+{
+  "name": "chewata-receipt-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Fetches telebirr receipt pages from an Ethiopian address for the Chewata deposit check",
+  "type": "module",
+  "main": "server.mjs",
+  "engines": { "node": ">=18" },
+  "scripts": { "start": "node server.mjs" }
+}
