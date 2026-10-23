@@ -12,13 +12,14 @@
 //     429 {"retryAfter":seconds}   Ethio Telecom allows 5 lookups a minute per address
 //   GET /health → {"ok":true}
 //
-// Environment: PROXY_SECRET (required, 32+ characters), PORT (default 8080).
+// Environment: PROXY_SECRET or PROXY_KEY (required, 32+ characters), PORT (default 8080).
 // No dependencies; Node 18 or newer.
 
 import { createServer } from "node:http"
 import { timingSafeEqual } from "node:crypto"
 
-const SECRET = process.env.PROXY_SECRET ?? ""
+// PROXY_KEY is accepted too: some hosts withhold variables whose names contain "SECRET".
+const SECRET = process.env.PROXY_SECRET || process.env.PROXY_KEY || ""
 const PORT = Number(process.env.PORT ?? 8080)
 const RECEIPT_URL = "https://transactioninfo.ethiotelecom.et/receipt/"
 const NOT_FOUND_TEXT = "This request is not correct"
@@ -28,7 +29,7 @@ const MAX_PER_MINUTE = 4
 const recent = []
 
 if (SECRET.length < 32) {
-  console.error("PROXY_SECRET must be set to at least 32 characters.")
+  console.error("PROXY_SECRET (or PROXY_KEY) must be set to at least 32 characters.")
   process.exit(1)
 }
 

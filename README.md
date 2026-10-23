@@ -21,6 +21,8 @@ PROXY_SECRET=<32+ random characters> npm start      # listens on PORT (default 8
 ## Deploy
 
 Any Node 18+ host with an Ethiopian address works (AletCloud's free "Solo"
-plan, or the gateway phone's network). Set the same `PROXY_SECRET` here and as
+plan, or the gateway phone's network). The included Dockerfile runs it. On
+AletCloud set the password as `PROXY_KEY` (variables named `*SECRET*` are
+withheld there). Set the same value here and as
 `RECEIPT_PROXY_SECRET` in the Cloud Functions' `functions/.env`, and the
 public URL as `RECEIPT_PROXY_URL`.
